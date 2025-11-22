@@ -57,6 +57,20 @@ function editText($msgId, $txt, $key = null, $parse = null, $ci = null){
         'reply_markup' =>  $key
         ]);
 }
+function delPrevMessages($count = 2, $chat_id = null){
+    global $from_id, $message_id;
+    
+    $chat_id = $chat_id ?? $from_id;
+    
+   
+    for($i = 1; $i <= $count; $i++){
+        $msg_id = $message_id - $i; 
+        bot('deleteMessage', [
+            'chat_id' => $chat_id,
+            'message_id' => $msg_id
+        ]);
+    }
+}
 function delMessage($msg = null, $chat_id = null){
     global $from_id, $message_id;
     $msg = $msg??$message_id;
@@ -266,6 +280,10 @@ function getMainKeys(){
             ($botState['testAccount'] == "on")?[['text'=>$buttonValues['test_account'],'callback_data'=>"getTestAccount"]]:
                 []
             ),
+		[
+		['text'=>$buttonValues['apple'],'callback_data'=>"choose_apple"],
+		['text' => $buttonValues['chatgpt'], 'callback_data' => 'choose_chatgpt']
+							],
         [['text'=>$buttonValues['sharj'],'callback_data'=>"increaseMyWallet"]],
         [['text'=>$buttonValues['invite_friends'],'callback_data'=>"inviteFriends"],['text'=>$buttonValues['my_info'],'callback_data'=>"myInfo"]],
         (($botState['sharedExistence'] == "on" && $botState['individualExistence'] == "on")?
@@ -340,6 +358,15 @@ function getAdminKeys(){
             ['text'=>$buttonValues['agent_list'],'callback_data'=>"agentsList"],
             ['text'=>'درخواست های رد شده','callback_data'=>"rejectedAgentList"]
             ],
+					       [ ['text' => $buttonValues['apple_add'], 'callback_data' => 'admin_add_apple']],
+                   [ ['text' => $buttonValues['apple_manage'], 'callback_data' => 'admin_manage_apple']],
+					   [
+    ['text' => $buttonValues['chatgpt_add'], 'callback_data' => 'admin_add_chatgpt']
+],
+[
+    ['text' => $buttonValues['chatgpt_manage'], 'callback_data' => 'admin_manage_chatgpt']
+],
+
         [['text'=>$buttonValues['back_to_main'],'callback_data'=>"mainMenu"]],
     ]]);
     
