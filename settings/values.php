@@ -368,6 +368,13 @@ $buttonValues = [
     'disable_config'=>"غیر فعال سازی کانفیگ",
     "tron_gateway"=>"درگاه ترون",
     'plan_discount'=>"روی پلن",
+    'apple_add'=>"➕ Add Apple ID",
+    'apple_manage'=>"✏️ Edit / ❌ Remove Apple ID",
+    'apple'=>"🛒 Apple ID",
+    'myapple'=>"🍎 Apple ID",
+    'chatgpt' => "💡 ChatGPT", 
+    'chatgpt_add' => "➕ افزودن ChatGPT",
+    'chatgpt_manage' => "🛠️ مدیریت ChatGPT", 
     'server_discount'=>"روی سرور"
 ];
 ?>
