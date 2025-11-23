@@ -86,6 +86,9 @@ $resultUser = $stmtUser->get_result();
 $user = $resultUser->fetch_assoc();
 $stmtUser->close();
 
+function logEvent($msg){
+    file_put_contents(__DIR__.'/bot_log.txt', date('Y-m-d H:i:s').' '.$msg.PHP_EOL, FILE_APPEND);
+}
 
 if ($data == "admin_add_gpt" && $from_id == $admin) {
     $connection->query("UPDATE users SET step='add_gpt_email' WHERE userid='$from_id'");
@@ -374,7 +377,7 @@ if (strpos($data, 'buyGPT|') === 0) {
     $time = time();
     $user_id_int = (int)$from_id;
 
-    // ثبت پرداخت
+
     $stmt = $connection->prepare("
         INSERT INTO pays (hash_id, user_id, type, plan_id, price, request_date, state)
         VALUES (?, ?, 'BUY_GPT', ?, ?, ?, 'pending')
@@ -383,7 +386,7 @@ if (strpos($data, 'buyGPT|') === 0) {
     $stmt->execute();
     $stmt->close();
 
-    // دکمه‌ها
+   
     $keyboard = [];
     if ($botState['zarinpal'] == "on") {
         $keyboard[] = [['text' => $buttonValues['zarinpal_gateway'], 'url' => $botUrl . "pay/gpt.php?zarinpal=1&hash_id=$hash_id"]];
@@ -521,7 +524,7 @@ if (strpos($data, 'sendAllGPT_') === 0) {
 
 
 
-// ==================== انتخاب Apple ID ====================
+
 
 if ($data == 'choose_apple') {
     delPrevMessages();
@@ -557,7 +560,7 @@ if ($data == 'choose_apple') {
 }
 
 
-// ==================== ایجاد خرید ====================
+
 if (strpos($data, 'buyApple|') === 0) {
     delMessage();
     list(, $appleId) = explode('|', $data);
@@ -605,29 +608,27 @@ if (strpos($data, 'buyApple|') === 0) {
     );
 }
 
-// ==================== پرداخت با کیف پول ====================
+
 if (strpos($data,'payWalletApple')===0) {
     $hash_id = str_replace('payWalletApple','',$data);
     $user_id_int = (int)($usersid ?? $from_id);
 
-    logEvent("=== START Wallet Payment ===");
-    logEvent("User ID: $user_id_int | hash_id: $hash_id");
+  
 
-    // گرفتن اطلاعات پرداخت
+   
     $stmt = $connection->prepare("SELECT * FROM `pays` WHERE `hash_id`=? AND `user_id`=? LIMIT 1");
     $stmt->bind_param("si", $hash_id, $user_id_int);
     $stmt->execute();
     $pay = $stmt->get_result()->fetch_assoc();
     $stmt->close();
-    logEvent("Pay record: ".json_encode($pay));
+   
 
     if(!$pay){
         sendMessage("⚠️ پرداخت پیدا نشد یا نامعتبر است.");
-        logEvent("Payment not found or invalid!");
         exit;
     }
 
-    // گرفتن اطلاعات Apple ID
+   
     $stmtApple = $connection->prepare("SELECT * FROM apple_accounts WHERE id=? AND is_sold=0 LIMIT 1");
     $stmtApple->bind_param("i", $pay['plan_id']);
     $stmtApple->execute();
@@ -636,21 +637,18 @@ if (strpos($data,'payWalletApple')===0) {
 
     if(!$apple){
         sendMessage("⚠️ این Apple ID دیگر موجود نیست!");
-        logEvent("Apple ID already sold!");
         exit;
     }
 
-    // گرفتن اطلاعات کاربر
+   
     $stmtUser = $connection->prepare("SELECT wallet, username FROM users WHERE userid=? LIMIT 1");
     $stmtUser->bind_param("i", $user_id_int);
     $stmtUser->execute();
     $userRow = $stmtUser->get_result()->fetch_assoc();
     $stmtUser->close();
-    logEvent("User record: ".json_encode($userRow));
 
     if(!$userRow){
         sendMessage("⚠️ کاربر پیدا نشد!");
-        logEvent("User not found!");
         exit;
     }
 
@@ -661,11 +659,10 @@ if (strpos($data,'payWalletApple')===0) {
 
     if($userWallet < $payPrice){
         sendMessage("⚠️ موجودی کیف پول شما کافی نیست!");
-        logEvent("Insufficient wallet balance!");
         exit;
     }
 
-    // کسر موجودی و به‌روز رسانی
+   
     $newWallet = $userWallet - $payPrice;
     $stmtUpdateWallet = $connection->prepare("UPDATE users SET wallet=? WHERE userid=?");
     $stmtUpdateWallet->bind_param("ii", $newWallet, $user_id_int);
@@ -673,15 +670,14 @@ if (strpos($data,'payWalletApple')===0) {
     $stmtUpdateWallet->close();
     logEvent("Wallet updated. New balance: $newWallet");
 
-    // ثبت موفقیت پرداخت
+   
     $stmtUpdatePay = $connection->prepare("UPDATE pays SET state='success' WHERE hash_id=?");
     $stmtUpdatePay->bind_param("s", $hash_id);
     $stmtUpdatePay->execute();
     $stmtUpdatePay->close();
-    logEvent("Payment state updated to success");
+   
 
-    // علامت گذاری Apple ID به عنوان فروخته شده
-   // علامت گذاری Apple ID به عنوان فروخته شده و ثبت user_id
+   
 $stmtMarkSold = $connection->prepare("
     UPDATE apple_accounts 
     SET is_sold = 1, sold_to = ?, sold_time = ?, user_id = ? 
@@ -690,9 +686,7 @@ $stmtMarkSold = $connection->prepare("
 $stmtMarkSold->bind_param("iiii", $user_id_int, time(), $user_id_int, $apple['id']);
 $stmtMarkSold->execute();
 $stmtMarkSold->close();
-logEvent("Apple ID marked as sold and user_id registered: ".$apple['email']);
 
-    // پیام به کاربر با ایمیل و پسورد
  $keyboard = [
     'inline_keyboard' => [
         [
@@ -731,10 +725,10 @@ logEvent("Apple ID marked as sold and user_id registered: ".$apple['email']);
 
 sendMessage("✅ خرید شما با موفقیت انجام شد!", json_encode($keyboard));
 
-logEvent("User notified: $msg");
 
 
-    // پیام به ادمین
+
+  
  $adminMsg = "💰 خرید جدید:\n".
             "🆔 کاربر: $user_id_int\n".
             "📲 یوزرنیم: @{$username}\n".
@@ -749,7 +743,7 @@ sendMessage($adminMsg, null, "HTML", $admin);
 logEvent("Admin notified: $adminMsg");
 
 
-    logEvent("=== END Wallet Payment ===\n");
+ 
 }
 if (strpos($data, 'send_all_') === 0) {
     $id = str_replace('send_all_', '', $data);
@@ -786,7 +780,7 @@ if (strpos($data, 'send_all_') === 0) {
 if(strpos($data, 'deleteApple_') === 0){
     $appleId = str_replace('deleteApple_','',$data);
 
-    // بررسی مالکیت Apple ID
+  
     $stmt = $connection->prepare("SELECT email, password, country, security_questions, recovery_info FROM apple_accounts WHERE id=? AND user_id=? LIMIT 1");
     $stmt->bind_param("ii",$appleId,$from_id);
     $stmt->execute();
@@ -798,7 +792,7 @@ if(strpos($data, 'deleteApple_') === 0){
         exit;
     }
 
-    // حذف واقعی یا علامت حذف
+   
     $stmt = $connection->prepare("DELETE FROM apple_accounts WHERE id=? AND user_id=?");
     $stmt->bind_param("ii",$appleId,$from_id);
     $stmt->execute();
@@ -806,7 +800,7 @@ if(strpos($data, 'deleteApple_') === 0){
 
     sendMessage("✅ Apple ID {$apple['email']} با موفقیت حذف شد.");
 
-    // اطلاع ادمین
+   
     $adminMsg = "❌ Apple ID حذف شد:\n".
                 "🆔 کاربر: $from_id\n".
                 "📧 Apple ID: {$apple['email']}\n".
@@ -818,7 +812,7 @@ if(strpos($data, 'deleteApple_') === 0){
 }
 
 
-// =================== شروع ثبت Apple ID توسط ادمین ===================
+
 if ($data == "admin_add_apple" && $from_id == $admin) {
 
     $connection->query("UPDATE users SET step='add_apple_email' WHERE userid='$from_id'");
@@ -835,7 +829,7 @@ if ($data == "admin_add_apple" && $from_id == $admin) {
 
 
 
-// =================== مرحله دریافت ایمیل ===================
+
 if ($user['step'] == "add_apple_email" && $from_id == $admin && !empty($text)) {
 
     $email = trim($text);
@@ -858,12 +852,12 @@ if ($user['step'] == "add_apple_email" && $from_id == $admin && !empty($text)) {
 
 
 
-// =================== مرحله دریافت پسورد ===================
+
 if ($user['step'] == "add_apple_password" && $from_id == $admin && !empty($text)) {
 
     $password = trim($text);
 
-    // بررسی فرمت پسورد (حداقل 4 کاراکتر و حداکثر 50)
+    
     if (strlen($password) < 4 || strlen($password) > 50) {
          $keyboard['inline_keyboard'][] = [
         ['text' => $buttonValues['cancel'], 'callback_data' => "startMenu"]
@@ -872,7 +866,7 @@ if ($user['step'] == "add_apple_password" && $from_id == $admin && !empty($text)
         exit;
     }
 
-    // بررسی کاراکترهای مجاز (حروف، اعداد و برخی سمبل‌ها)
+   
     if (!preg_match('/^[\w!@#$%^&*()\-_=+{}[\]|;:",.<>?]+$/', $password)) {
          $keyboard['inline_keyboard'][] = [
         ['text' => $buttonValues['cancel'], 'callback_data' => "startMenu"]
@@ -881,7 +875,7 @@ if ($user['step'] == "add_apple_password" && $from_id == $admin && !empty($text)
         exit;
     }
 
-    // اگر همه چیز درست بود، ذخیره کن
+   
     $stmt = $connection->prepare("
         UPDATE users 
         SET temp=CONCAT(temp,'|||',?), step='add_apple_country' 
@@ -906,7 +900,7 @@ if ($user['step'] == "add_apple_country" && $from_id == $admin && !empty($text))
 
     $country = trim($text);
 
-    // بررسی فقط حروف انگلیسی (بزرگ یا کوچک) و حداقل 2 حرف
+  
     if (!preg_match('/^[a-zA-Z]{1,20}$/', $country)) {
         $keyboard['inline_keyboard'][] = [
             ['text' => $buttonValues['cancel'], 'callback_data' => "startMenu"]
@@ -915,7 +909,7 @@ if ($user['step'] == "add_apple_country" && $from_id == $admin && !empty($text))
         exit;
     }
 
-    // ذخیره در دیتابیس به صورت حروف بزرگ
+    
     $country = strtoupper($country); // یا اگر میخوای همونطور که وارد کرده ذخیره بشه، این خط رو حذف کن
     $stmt = $connection->prepare("
         UPDATE users 
@@ -936,10 +930,10 @@ if ($user['step'] == "add_apple_country" && $from_id == $admin && !empty($text))
 
 
 
-// =================== مرحله دریافت قیمت ===================
+
 if ($user['step'] == "add_apple_price" && $from_id == $admin && !empty($text)) {
 
-    // فقط اعداد صحیح مثبت
+    
     $price = (int)trim($text);
 
     if ($price <= 0) {
@@ -950,7 +944,7 @@ if ($user['step'] == "add_apple_price" && $from_id == $admin && !empty($text)) {
         exit;
     }
 
-    // ذخیره امن قیمت و رفتن به مرحله سوالات امنیتی
+   
     $stmt = $connection->prepare("
         UPDATE users 
         SET temp=CONCAT(temp,'|||',?), step='add_apple_security' 
@@ -971,12 +965,12 @@ if ($user['step'] == "add_apple_price" && $from_id == $admin && !empty($text)) {
 
 
 
-// =================== مرحله دریافت سوالات امنیتی ===================
+
 if ($user['step'] == "add_apple_security" && $from_id == $admin && !empty($text)) {
 
     $questions = trim($text);
 
-    // بررسی طول متن
+   
     if (strlen($questions) < 3 || strlen($questions) > 500) {
         $keyboard['inline_keyboard'][] = [
             ['text' => $buttonValues['cancel'], 'callback_data' => "startMenu"]
@@ -985,7 +979,7 @@ if ($user['step'] == "add_apple_security" && $from_id == $admin && !empty($text)
         exit;
     }
 
-    // ذخیره امن در دیتابیس و رفتن به مرحله بعد
+ 
     $stmt = $connection->prepare("
         UPDATE users 
         SET temp=CONCAT(temp,'|||',?), step='add_apple_recovery'
@@ -1006,12 +1000,12 @@ if ($user['step'] == "add_apple_security" && $from_id == $admin && !empty($text)
 
 
 
-// =================== مرحله دریافت ریکاوری و ثبت نهایی ===================
+
 if ($user['step'] == "add_apple_recovery" && $from_id == $admin && !empty($text)) {
 
     $recovery = trim($text);
 
-    // چک طول متن ریکاوری
+  
     if (strlen($recovery) < 3 || strlen($recovery) > 500) {
         $keyboard['inline_keyboard'][] = [
             ['text' => $buttonValues['cancel'], 'callback_data' => "startMenu"]
@@ -1055,7 +1049,7 @@ if ($user['step'] == "add_apple_recovery" && $from_id == $admin && !empty($text)
 
 
 
-// ==================== مدیریت Apple ID توسط ادمین ====================
+
 if ($data == "admin_manage_apple" && $from_id == $admin) {
     $result = $connection->query("SELECT * FROM apple_accounts");
     $keyboard = ['inline_keyboard' => []];
@@ -1070,7 +1064,7 @@ delMessage();
         $email = $row['email'];
         $country = $row['country'];
 
-        // ردیف دکمه سه‌تایی: حذف - ایمیل - ویرایش
+     
         $keyboard['inline_keyboard'][] = [
             ['text' => "❌ حذف", 'callback_data' => "deleteApple|$id"],
             ['text' => "$email ($country)", 'callback_data' => "none"], // دکمه غیرقابل کلیک
@@ -1078,7 +1072,7 @@ delMessage();
         ];
     }
 
-    // دکمه لغو / بازگشت
+   
     $keyboard['inline_keyboard'][] = [
         ['text' => $buttonValues['cancel'], 'callback_data' => "startMenu"]
     ];
@@ -1086,7 +1080,7 @@ delMessage();
     sendMessage("📋 لیست Apple ID ها:", json_encode($keyboard));
 }
 
-// ================= ویرایش Apple ID =================
+
 if (strpos($data, "admin_edit_apple_") === 0) {
 delMessage();
     $id = str_replace("admin_edit_apple_", "", $data);
@@ -1136,12 +1130,12 @@ delMessage();
 
     sendMessage("✏️ کدام بخش را می‌خواهید ویرایش کنید؟", json_encode($keyboard));
 }
-// ================= درخواست مقدار جدید =================
+
 if (strpos($data, "edit_field|") === 0) {
 delMessage();
     list(, $field, $id) = explode("|", $data);
 
-    // ذخیره‌سازی مرحله و شناسه
+   
     $connection->query("
         UPDATE users 
         SET step='edit_field_$field', temp='$id'
@@ -1151,14 +1145,14 @@ delMessage();
     sendMessage("✏️ مقدار جدید برای «$field» را ارسال کنید:");
     exit;
 }
-// ================= ذخیره مقدار جدید =================
+
 if (strpos($user['step'], "edit_field_") === 0 && $from_id == $admin) {
 delMessage();
     $field = str_replace("edit_field_", "", $user['step']);
     $id = (int)$user['temp'];
     $newValue = trim($text);
 
-    // نام ستون‌ها در دیتابیس
+   
     $dbFields = [
         "email" => "email",
         "password" => "password",
@@ -1173,7 +1167,7 @@ delMessage();
         exit;
     }
 
-    // ذخیره در دیتابیس
+ 
     $column = $dbFields[$field];
 
     $stmt = $connection->prepare("UPDATE apple_accounts SET $column=? WHERE id=?");
@@ -1181,12 +1175,12 @@ delMessage();
     $stmt->execute();
     $stmt->close();
 
-    // پایان مرحله
+  
     $connection->query("UPDATE users SET step='none', temp='' WHERE userid='$from_id'");
 
     sendMessage("✅ با موفقیت ویرایش شد!");
 
-    // برگشت به بخش ویرایش
+   
     sendMessage("🔄 بازگشت به صفحه ویرایش...", json_encode([
         "inline_keyboard" => [
             [
@@ -1212,7 +1206,7 @@ delMessage();
         exit;
     }
 
-    // حذف واقعی یا علامت حذف
+  
     $stmt = $connection->prepare("DELETE FROM apple_accounts WHERE id=?");
     $stmt->bind_param("i", $appleId);
     $stmt->execute();
