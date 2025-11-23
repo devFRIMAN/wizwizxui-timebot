@@ -79,6 +79,13 @@ if(strstr($text, "/start ")){
     
     $text = "/start";
 }
+if ($data == "startMenu" && $from_id == $admin) {
+    $connection->query("UPDATE users SET step='none', temp='' WHERE userid='$from_id'");
+    delPrevMessages();
+     delMessage();
+       sendMessage("🔙 به منوی اصلی بازگشتید.\n\n/start", getMainKeys());
+    exit;
+}
 $stmtUser = $connection->prepare("SELECT step, temp FROM users WHERE userid=? LIMIT 1");
 $stmtUser->bind_param("s", $from_id);
 $stmtUser->execute();
