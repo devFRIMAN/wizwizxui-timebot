@@ -329,7 +329,7 @@ if (strpos($data, 'deleteGPT|') === 0 && $from_id == $admin) {
 
 if ($data == 'choose_gpt') {
    
-    delMessage();
+ 
 
     $result = $connection->query("
         SELECT * FROM gpt_accounts 
@@ -535,7 +535,7 @@ if (strpos($data, 'sendAllGPT_') === 0) {
 
 if ($data == 'choose_apple') {
    
-    delMessage();
+  
 
     $result = $connection->query("
         SELECT * FROM apple_accounts 
