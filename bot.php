@@ -322,7 +322,7 @@ if (strpos($data, 'deleteGPT|') === 0 && $from_id == $admin) {
     $stmt->execute();
     $stmt->close();
 
-    sendMessage("✅ اکانت {$row['email']} با موفقیت حذف شد.");
+    sendMessage("✅ اکانت {$row['email']} با موفقیت حذف شد.",getMainKeys());
     exit;
 }
 
@@ -776,7 +776,7 @@ if (strpos($data, 'send_all_') === 0) {
   $keyboard = [
         'inline_keyboard' => [
             [
-                ['text'=>$buttonValues['cancel'],'callback_data'=>"myAppleIDs"]
+                ['text'=>$buttonValues['cancel'],'callback_data'=>"startMenu"]
             ]
         ] 
     ];
@@ -805,7 +805,7 @@ if(strpos($data, 'deleteApple_') === 0){
     $stmt->execute();
     $stmt->close();
 
-    sendMessage("✅ Apple ID {$apple['email']} با موفقیت حذف شد.");
+    sendMessage("✅ Apple ID {$apple['email']} با موفقیت حذف شد.",getMainKeys());
 
    
     $adminMsg = "❌ Apple ID حذف شد:\n".
@@ -1219,7 +1219,7 @@ delMessage();
     $stmt->execute();
     $stmt->close();
 
-    sendMessage("✅ Apple ID {$apple['email']} با موفقیت حذف شد.");
+    sendMessage("✅ Apple ID {$apple['email']} با موفقیت حذف شد.",getMainKeys());
 }
 
 
