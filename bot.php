@@ -321,7 +321,7 @@ if (strpos($data, 'deleteGPT|') === 0 && $from_id == $admin) {
 
 
 if ($data == 'choose_gpt') {
-    delPrevMessages();
+   
     delMessage();
 
     $result = $connection->query("
@@ -527,7 +527,7 @@ if (strpos($data, 'sendAllGPT_') === 0) {
 
 
 if ($data == 'choose_apple') {
-    delPrevMessages();
+   
     delMessage();
 
     $result = $connection->query("
