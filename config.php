@@ -282,7 +282,7 @@ function getMainKeys(){
             ),
 		[
 		['text'=>$buttonValues['apple'],'callback_data'=>"choose_apple"],
-		['text' => $buttonValues['chatgpt'], 'callback_data' => 'choose_chatgpt']
+		['text' => $buttonValues['chatgpt'], 'callback_data' => 'choose_gpt']
 							],
         [['text'=>$buttonValues['sharj'],'callback_data'=>"increaseMyWallet"]],
         [['text'=>$buttonValues['invite_friends'],'callback_data'=>"inviteFriends"],['text'=>$buttonValues['my_info'],'callback_data'=>"myInfo"]],
@@ -361,10 +361,10 @@ function getAdminKeys(){
 					       [ ['text' => $buttonValues['apple_add'], 'callback_data' => 'admin_add_apple']],
                    [ ['text' => $buttonValues['apple_manage'], 'callback_data' => 'admin_manage_apple']],
 					   [
-    ['text' => $buttonValues['chatgpt_add'], 'callback_data' => 'admin_add_chatgpt']
+    ['text' => $buttonValues['chatgpt_add'], 'callback_data' => 'admin_add_gpt']
 ],
 [
-    ['text' => $buttonValues['chatgpt_manage'], 'callback_data' => 'admin_manage_chatgpt']
+    ['text' => $buttonValues['chatgpt_manage'], 'callback_data' => 'admin_manage_gpt']
 ],
 
         [['text'=>$buttonValues['back_to_main'],'callback_data'=>"mainMenu"]],
