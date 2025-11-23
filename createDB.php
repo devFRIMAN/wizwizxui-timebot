@@ -18,20 +18,18 @@ $connection->query("CREATE TABLE `chats` (
   PRIMARY KEY (`id`)
 )");
 $connection->query("
-CREATE TABLE `chatgpt_accounts` (
+CREATE TABLE `gpt_accounts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `plan` varchar(100) DEFAULT NULL,
-  `notes` text DEFAULT NULL,
   `price` int(11) DEFAULT NULL,
   `is_sold` tinyint(1) DEFAULT 0,
-  `sold_to` bigint(20) DEFAULT NULL,
-  `sold_time` int(11) DEFAULT NULL,
   `user_id` bigint(20) DEFAULT NULL,
+  `sold_time` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ");
+
 
 $connection->query("CREATE TABLE `apple_accounts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
